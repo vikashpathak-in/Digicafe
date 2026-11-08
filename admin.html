@@ -131,7 +131,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);line-h
           <label>Password</label>
           <input type="password" id="admin-password" placeholder="Your password" required>
         </div>
-        <button type="submit" class="btn btn-primary btn-full" style="padding:1rem;margin-bottom:1rem"><i class="fas fa-sign-in-alt"></i> Sign In</button>
+        <button type="submit" class="btn btn-primary btn-full" style="padding:1rem;margin-bottom:.5rem"><i class="fas fa-sign-in-alt"></i> Sign In</button>
+        <button type="button" onclick="forgotAdminPassword()" style="display:block;width:100%;background:none;border:none;color:var(--blue2);font:inherit;font-size:.88rem;cursor:pointer;text-align:center;padding:.6rem 0 .25rem">Forgot Password?</button>
       </form>
 
       <button type="button" class="btn btn-ghost btn-full" id="show-signup-btn" onclick="toggleAdminSignup(true)" style="margin-top:.25rem">
@@ -364,7 +365,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);line-h
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendEmailVerification, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
   import { getFirestore, collection, addDoc, deleteDoc, doc, getDocs, updateDoc, orderBy, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -457,6 +458,33 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);line-h
       loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
     }
     return false;
+  };
+
+  window.forgotAdminPassword = async function() {
+    const email = document.getElementById('admin-email').value.trim().toLowerCase();
+    const errorDiv = document.getElementById('auth-error');
+
+    if (!email) {
+      errorDiv.style.display = 'flex';
+      errorDiv.innerHTML = '<i class="fas fa-info-circle"></i> <span>Enter your registered admin email above, then click Forgot Password?</span>';
+      document.getElementById('admin-email').focus();
+      return;
+    }
+    if (!isAuthorizedAdmin(email)) {
+      errorDiv.style.display = 'flex';
+      errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> <span>This email is not authorized for DigiCafe admin access.</span>';
+      return;
+    }
+
+    try {
+      await sendPasswordResetEmail(auth, email);
+      errorDiv.style.display = 'flex';
+      errorDiv.innerHTML = '<i class="fas fa-envelope"></i> <span>If an account exists for this address, Firebase has sent a password-reset email. Check your inbox and spam folder.</span>';
+    } catch (err) {
+      console.error('Password reset request failed:', err);
+      errorDiv.style.display = 'flex';
+      errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> <span>Could not send the reset email: ' + (err.message || 'Please try again.') + '</span>';
+    }
   };
 
   window.toggleAdminSignup = function(show) {
