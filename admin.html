@@ -133,6 +133,30 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);line-h
         </div>
         <button type="submit" class="btn btn-primary btn-full" style="padding:1rem;margin-bottom:1rem"><i class="fas fa-sign-in-alt"></i> Sign In</button>
       </form>
+
+      <button type="button" class="btn btn-ghost btn-full" id="show-signup-btn" onclick="toggleAdminSignup(true)" style="margin-top:.25rem">
+        <i class="fas fa-user-plus"></i> Create Admin Account
+      </button>
+
+      <form id="admin-signup-form" onsubmit="handleAdminSignup(event)" style="display:none;border-top:1px solid var(--bdr);padding-top:1.25rem;margin-top:1.25rem">
+        <h3 style="font-family:'Sora',sans-serif;font-size:1.05rem;margin-bottom:1rem">Admin Sign Up</h3>
+        <div class="form-group">
+          <label>Authorized Admin Email</label>
+          <input type="email" id="signup-email" placeholder="Enter your approved admin email" autocomplete="email" required>
+        </div>
+        <div class="form-group">
+          <label>Password (minimum 8 characters)</label>
+          <input type="password" id="signup-password" minlength="8" autocomplete="new-password" required>
+        </div>
+        <div class="form-group">
+          <label>Confirm Password</label>
+          <input type="password" id="signup-confirm-password" minlength="8" autocomplete="new-password" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full" id="signup-submit-btn" style="padding:1rem;margin-bottom:.75rem">
+          <i class="fas fa-user-plus"></i> Sign Up
+        </button>
+        <button type="button" class="btn btn-ghost btn-full" onclick="toggleAdminSignup(false)">Back to Sign In</button>
+      </form>
       
       <div style="text-align:center;font-size:.8rem;color:var(--txt3);margin-top:1.5rem">
         <p style="margin-bottom:.5rem">Only authorized admins can access this portal.</p>
@@ -340,7 +364,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);line-h
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendEmailVerification, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
   import { getFirestore, collection, addDoc, deleteDoc, doc, getDocs, updateDoc, orderBy, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -400,6 +424,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);line-h
     
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
+      if (!result.user.emailVerified) {
+        await signOut(auth);
+        errorDiv.style.display = 'flex';
+        errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> <span>Please verify your email using the link sent to your inbox, then sign in again.</span>';
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
+        return false;
+      }
       if (!isAuthorizedAdmin(result.user.email)) {
         await signOut(auth);
         errorDiv.style.display = 'flex';
@@ -427,6 +459,61 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);line-h
     return false;
   };
 
+  window.toggleAdminSignup = function(show) {
+    const loginForm = document.querySelector('#page-login form[onsubmit="handleAdminLogin(event)"]');
+    const signupForm = document.getElementById('admin-signup-form');
+    const signupButton = document.getElementById('show-signup-btn');
+    if (loginForm) loginForm.style.display = show ? 'none' : 'block';
+    if (signupForm) signupForm.style.display = show ? 'block' : 'none';
+    if (signupButton) signupButton.style.display = show ? 'none' : 'flex';
+    const errorDiv = document.getElementById('auth-error');
+    if (errorDiv) errorDiv.style.display = 'none';
+  };
+
+  window.handleAdminSignup = async function(e) {
+    e.preventDefault();
+    const email = document.getElementById('signup-email').value.trim().toLowerCase();
+    const password = document.getElementById('signup-password').value;
+    const confirmPassword = document.getElementById('signup-confirm-password').value;
+    const errorDiv = document.getElementById('auth-error');
+    const signupBtn = document.getElementById('signup-submit-btn');
+
+    if (!isAuthorizedAdmin(email)) {
+      errorDiv.style.display = 'flex';
+      errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> <span>Sign-up is restricted to approved DigiCafe admin email addresses.</span>';
+      return false;
+    }
+    if (password.length < 8 || password !== confirmPassword) {
+      errorDiv.style.display = 'flex';
+      errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> <span>Use at least 8 characters and make sure both passwords match.</span>';
+      return false;
+    }
+
+    signupBtn.disabled = true;
+    signupBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating account...';
+    try {
+      const credential = await createUserWithEmailAndPassword(auth, email, password);
+      await sendEmailVerification(credential.user);
+      await signOut(auth);
+      errorDiv.style.display = 'flex';
+      errorDiv.innerHTML = '<i class="fas fa-envelope-circle-check"></i> <span>Account created. Check your email and verify the address before signing in.</span>';
+      e.target.reset();
+      toggleAdminSignup(false);
+      errorDiv.style.display = 'flex';
+      errorDiv.innerHTML = '<i class="fas fa-envelope-circle-check"></i> <span>Account created. Check your email and verify the address before signing in.</span>';
+    } catch (err) {
+      errorDiv.style.display = 'flex';
+      const message = err.code === 'auth/email-already-in-use'
+        ? 'This email already has an account. Use Sign In instead.'
+        : (err.message || 'Could not create the account.');
+      errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> <span>' + message + '</span>';
+    } finally {
+      signupBtn.disabled = false;
+      signupBtn.innerHTML = '<i class="fas fa-user-plus"></i> Sign Up';
+    }
+    return false;
+  };
+
   window.adminSignOut = async function() {
     await signOut(auth);
     document.getElementById('logout-btn').style.display = 'none';
@@ -438,7 +525,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);line-h
   };
 
   onAuthStateChanged(auth, (user) => {
-    if (user && isAuthorizedAdmin(user.email)) {
+    if (user && isAuthorizedAdmin(user.email) && user.emailVerified) {
       console.log('✓ Admin authorized:', user.email);
       document.getElementById('logout-btn').style.display = 'flex';
       document.getElementById('page-login').classList.remove('active');
