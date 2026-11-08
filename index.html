@@ -297,6 +297,21 @@ footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:60px 0 30px
 .newsletter-modal-close{position:absolute;right:1rem;top:.7rem;background:none;border:0;color:var(--txt2);font-size:1.7rem;cursor:pointer}
 .newsletter-status{font-size:.82rem;margin-top:.6rem;min-height:1.2rem;color:var(--teal)}
 @media(max-width:640px){.newsletter-modal-card{padding:1.4rem}}
+
+/* DigiCafe welcome popups and launch notices */
+.dc-welcome-overlay{display:none;position:fixed;inset:0;z-index:15000;background:rgba(2,6,23,.82);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:1rem}
+.dc-welcome-overlay.open{display:flex}
+.dc-welcome-card{position:relative;width:min(100%,520px);padding:2rem;border:1px solid rgba(245,158,11,.38);border-radius:22px;background:linear-gradient(145deg,#111836,#080d22);box-shadow:0 25px 90px rgba(0,0,0,.55);text-align:center}
+.dc-welcome-card h2{font-family:'Sora',sans-serif;font-size:clamp(1.5rem,4vw,2.15rem);line-height:1.2;margin:.8rem 0}
+.dc-welcome-card p{color:var(--txt2);margin:.65rem 0 1.2rem}
+.dc-welcome-close{position:absolute;right:1rem;top:.7rem;border:0;background:transparent;color:var(--txt2);font-size:1.8rem;cursor:pointer}
+.dc-launch-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin:2rem 0}
+.dc-launch-card{padding:1.35rem;border:1px solid var(--bdr);border-radius:var(--r2);background:var(--surf)}
+.dc-launch-card h3{font-family:'Sora',sans-serif;font-size:1rem;margin:.45rem 0}
+.dc-launch-card p{font-size:.86rem;color:var(--txt2);margin-bottom:.9rem}
+.dc-news-actions{display:flex;justify-content:center;gap:.65rem;flex-wrap:wrap;margin-top:1.2rem}
+@media(max-width:600px){.dc-welcome-card{padding:1.5rem}}
+
 </style>
 
 <!-- Firebase SDK -->
@@ -823,6 +838,26 @@ footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:60px 0 30px
         <p>Daily news, notifications, and updates on Income Tax, GST, Companies Act, and more.</p>
       </div>
       <div class="news-grid" id="news-home"></div>
+      <div class="dc-news-actions">
+        <button class="btn btn-ghost btn-sm" type="button" onclick="fetchAutoNews()"> <i class="fas fa-rotate"></i> Refresh Daily News</button>
+        <button class="btn btn-primary btn-sm" type="button" onclick="showPage('news')">Explore All News <i class="fas fa-arrow-right"></i></button>
+      </div>
+  <!-- DigiCafe upcoming services and enquiry invitation -->
+  <section class="sec" style="padding-top:20px;background:var(--bg2)">
+    <div class="c">
+      <div class="sh">
+        <span class="badge badge-teal">What's Next at DigiCafe</span>
+        <h2>More Business Tools <span class="g-text">Coming Soon</span></h2>
+        <p>We are expanding our business information and intellectual-property support services.</p>
+      </div>
+      <div class="dc-launch-grid">
+        <article class="dc-launch-card"><span class="badge badge-blue">In development</span><h3>Company Details &amp; Search</h3><p>Expanded company information, registration details and business lookup features are being developed. Existing directory coverage may be limited.</p><button class="btn btn-ghost btn-sm" type="button" onclick="showPage('company')">Explore Current Company Search</button></article>
+        <article class="dc-launch-card"><span class="badge badge-blue">Coming soon</span><h3>Trademark Search</h3><p>Trademark name search and preliminary brand research tools are planned. Final status and legal advice will require official verification.</p><button class="btn btn-ghost btn-sm" type="button" onclick="showPage('digital');scrollDacTo('request-help')">Enquire About Trademark Support</button></article>
+        <article class="dc-launch-card"><span class="badge badge-teal">Open for enquiries</span><h3>Explore Any Service</h3><p>Browse DigiCafe services, choose the service you need and submit the enquiry form. Our team will review your request after you sign in to the admin account.</p><button class="btn btn-primary btn-sm" type="button" onclick="showPage('digital');scrollDacTo('request-help')">Explore Services &amp; Fill Form <i class="fas fa-arrow-right"></i></button></article>
+      </div>
+    </div>
+  </section>
+
     </div>
   </section>
 
@@ -1781,6 +1816,30 @@ footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:60px 0 30px
     <a class="btn btn-primary btn-full" href="https://forms.gle/LhxnpuAmMBbeMXps6" target="_blank" rel="noopener noreferrer">Subscribe to DigiCafe Newsletter</a>
     <button type="button" onclick="window.closeNewsletterPopup(true)" class="btn btn-ghost btn-full" style="margin-top:.6rem">Maybe later</button>
     <p style="font-size:.7rem;color:var(--txt3);margin-top:1rem">No spam. Your email will only be used for DigiCafe updates.</p>
+  </div>
+</div>
+
+
+<!-- Festival and daily welcome popups -->
+<div id="dc-diwali-popup" class="dc-welcome-overlay" role="dialog" aria-modal="true" aria-labelledby="dc-diwali-title">
+  <div class="dc-welcome-card">
+    <button class="dc-welcome-close" type="button" aria-label="Close" onclick="closeDigiCafeWelcome('diwali')">&times;</button>
+    <div style="font-size:2.8rem">🪔 ✨ 🪔</div><span class="badge badge-teal">DigiCafe Wishes You</span>
+    <h2 id="dc-diwali-title">Happy Diwali!</h2>
+    <p>May this festival of lights bring prosperity, clarity and new beginnings to you and your family.</p>
+    <button class="btn btn-primary btn-full" type="button" onclick="closeDigiCafeWelcome('diwali')">Explore DigiCafe</button>
+  </div>
+</div>
+<div id="dc-morning-popup" class="dc-welcome-overlay" role="dialog" aria-modal="true" aria-labelledby="dc-morning-title">
+  <div class="dc-welcome-card">
+    <button class="dc-welcome-close" type="button" aria-label="Close" onclick="closeDigiCafeWelcome('morning')">&times;</button>
+    <div style="font-size:2.6rem">☀️</div><span class="badge badge-blue">A fresh day with DigiCafe</span>
+    <h2 id="dc-morning-title">Good Morning!</h2>
+    <p>Explore daily news, discover useful services and stay informed about tax, GST and business compliance updates.</p>
+    <div style="display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-primary" type="button" onclick="closeDigiCafeWelcome('morning');showPage('news')">Explore Daily News</button>
+      <button class="btn btn-ghost" type="button" onclick="closeDigiCafeWelcome('morning');showPage('digital');scrollDacTo('request-help')">Explore Services</button>
+    </div>
   </div>
 </div>
 
@@ -2760,6 +2819,37 @@ function sendRequestOnWhatsApp(){
     <a href="https://wa.me/918539979271" target="_blank" class="btn btn-primary btn-block"><i class="fab fa-whatsapp"></i> Get Help With This</a>
   </div>
 </div>
+
+
+<script>
+(function(){
+  const today = new Date();
+  const dateKey = today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+  const diwaliKey = 'digicafe_diwali_2026_seen';
+  const morningKey = 'digicafe_morning_seen_'+dateKey;
+  function open(id){ document.getElementById(id)?.classList.add('open'); }
+  window.closeDigiCafeWelcome = function(kind){
+    const id = kind === 'diwali' ? 'dc-diwali-popup' : 'dc-morning-popup';
+    document.getElementById(id)?.classList.remove('open');
+    try { localStorage.setItem(kind === 'diwali' ? diwaliKey : morningKey,'1'); } catch(e) {}
+    if(kind === 'diwali') setTimeout(showMorning,350);
+  };
+  function showMorning(){
+    try { if(localStorage.getItem(morningKey)) return; } catch(e) {}
+    open('dc-morning-popup');
+  }
+  document.addEventListener('DOMContentLoaded',function(){
+    const isDiwali = dateKey === '2026-11-08';
+    let diwaliSeen = false;
+    try { diwaliSeen = localStorage.getItem(diwaliKey) === '1'; } catch(e) {}
+    if(isDiwali && !diwaliSeen) setTimeout(()=>open('dc-diwali-popup'),1200);
+    else setTimeout(showMorning,1800);
+    ['dc-diwali-popup','dc-morning-popup'].forEach(id=>{
+      document.getElementById(id)?.addEventListener('click',e=>{ if(e.target.id===id) window.closeDigiCafeWelcome(id==='dc-diwali-popup'?'diwali':'morning'); });
+    });
+  });
+})();
+</script>
 
 <!-- Company Search module -->
 <script src="modules/company-search.js"></script>
