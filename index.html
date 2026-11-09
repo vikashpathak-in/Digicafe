@@ -835,7 +835,7 @@ footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:60px 0 30px
       <div class="sh">
         <span class="badge badge-blue">Latest Updates</span>
         <h2>India & World <span class="g-text">News</span></h2>
-        <p>National, international, Bengaluru & Karnataka headlines, alongside tax and business updates from established news organisations.</p>
+        <p>National, international and regional headlines from all 28 States and 8 Union Territories, alongside business, technology, sports and tax updates.</p>
       </div>
       <div class="news-grid" id="news-home"></div>
       <div class="dc-news-actions">
@@ -953,7 +953,7 @@ footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:60px 0 30px
   <div class="c">
     <div class="sh">
       <h2>News & <span class="g-text">Current Affairs</span></h2>
-      <p>National, international, Bengaluru & Karnataka, business, technology, sports and tax updates. Stories link to their original publishers.</p>
+      <p>National, international, state-wise and Union Territory news, plus business, technology, sports and tax updates. Stories link to their original publishers.</p>
     </div>
     <div style="margin-bottom:2rem;display:flex;gap:.5rem;flex-wrap:wrap" id="news-cats"></div>
     <div class="news-grid" id="news-full"></div>
@@ -2101,7 +2101,9 @@ function newsCardHtml(n){
 }
 
 function renderNews(cont){
-  cont.innerHTML=getNewsData().map(newsCardHtml).join('');
+  const data=getNewsData();
+  const visible=cont.id==='news-home' ? data.slice(0,8) : data;
+  cont.innerHTML=visible.map(newsCardHtml).join('');
 }
 
 function renderServices(cont){
@@ -2283,14 +2285,31 @@ window.renderAllNews = function(){
 // Public Google News RSS search results are fetched through rss2json.
 // Queries target established publishers; original article links are retained.
 // Cache is refreshed every six hours and reused when feeds are temporarily down.
-const AUTO_NEWS_CACHE_KEY = 'digicafe_auto_news_v2';
+const AUTO_NEWS_CACHE_KEY = 'digicafe_auto_news_v3';
+const AUTO_NEWS_PUBLISHERS = '(site:thehindu.com OR site:indianexpress.com OR site:ndtv.com OR site:hindustantimes.com OR site:newsonair.gov.in OR site:amarujala.com OR site:deccanherald.com)';
 const AUTO_NEWS_TOPICS = [
-  { q: '(India OR Indian) national news site:thehindu.com OR site:indianexpress.com OR site:ndtv.com OR site:hindustantimes.com', cat: 'National' },
-  { q: '(world OR international) news site:bbc.com OR site:theguardian.com OR site:aljazeera.com OR site:reuters.com', cat: 'International' },
-  { q: '(Bengaluru OR Bangalore OR Karnataka) news site:thehindu.com OR site:indianexpress.com OR site:deccanherald.com OR site:timesofindia.indiatimes.com', cat: 'Bengaluru & Karnataka' },
-  { q: 'India business economy markets technology news site:livemint.com OR site:business-standard.com OR site:thehindubusinessline.com', cat: 'Business & Technology' },
-  { q: 'India sports news site:indianexpress.com OR site:espn.com OR site:bbc.com', cat: 'Sports' },
-  { q: 'Income Tax India OR GST India OR MCA compliance India site:thehindu.com OR site:business-standard.com OR site:livemint.com OR site:incometax.gov.in OR site:gst.gov.in', cat: 'Tax & Compliance' }
+  { q: '(India OR Indian) national news (site:thehindu.com OR site:indianexpress.com OR site:ndtv.com OR site:hindustantimes.com OR site:newsonair.gov.in)', cat: 'National', limit: 8 },
+  { q: '(world OR international) news (site:bbc.com OR site:theguardian.com OR site:aljazeera.com OR site:reuters.com)', cat: 'International', limit: 8 },
+  { q: '(Bengaluru OR Bangalore OR Karnataka) news (site:thehindu.com OR site:indianexpress.com OR site:deccanherald.com OR site:ndtv.com OR site:newsonair.gov.in)', cat: 'State: Karnataka', limit: 5 },
+  { q: 'India business economy markets technology news (site:livemint.com OR site:business-standard.com OR site:thehindubusinessline.com)', cat: 'Business & Technology', limit: 8 },
+  { q: 'India sports news (site:indianexpress.com OR site:espn.com OR site:bbc.com)', cat: 'Sports', limit: 8 },
+  { q: 'Income Tax India OR GST India OR MCA compliance India (site:thehindu.com OR site:business-standard.com OR site:livemint.com OR site:incometax.gov.in OR site:gst.gov.in)', cat: 'Tax & Compliance', limit: 8 }
+];
+const INDIA_STATES = [
+  'Andhra Pradesh','Arunachal Pradesh','Assam','Bihar','Chhattisgarh','Goa','Gujarat',
+  'Haryana','Himachal Pradesh','Jharkhand','Karnataka','Kerala','Madhya Pradesh',
+  'Maharashtra','Manipur','Meghalaya','Mizoram','Nagaland','Odisha','Punjab',
+  'Rajasthan','Sikkim','Tamil Nadu','Telangana','Tripura','Uttar Pradesh',
+  'Uttarakhand','West Bengal'
+];
+const INDIA_UNION_TERRITORIES = [
+  'Andaman and Nicobar Islands','Chandigarh',
+  'Dadra and Nagar Haveli and Daman and Diu','Delhi',
+  'Jammu and Kashmir','Ladakh','Lakshadweep','Puducherry'
+];
+const REGIONAL_NEWS_TOPICS = [
+  ...INDIA_STATES.map(name => ({ q: `"${name}" news India ${AUTO_NEWS_PUBLISHERS}`, cat: `State: ${name}`, limit: 4 })),
+  ...INDIA_UNION_TERRITORIES.map(name => ({ q: `"${name}" news India ${AUTO_NEWS_PUBLISHERS}`, cat: `UT: ${name}`, limit: 4 }))
 ];
 
 function loadAutoNewsCache(){
@@ -2307,52 +2326,56 @@ function saveAutoNewsCache(items){
 
 async function fetchAutoNews(){
   const cached = loadAutoNewsCache();
-  const CACHE_TTL = 6 * 60 * 60 * 1000;
-  // Serve cache immediately so the section is never empty while we refresh.
+  const CACHE_TTL = 3 * 60 * 60 * 1000;
   if (cached && cached.items && cached.items.length) {
     window._autoNews = cached.items;
     window.renderAllNews && window.renderAllNews();
-    if (Date.now() - cached.fetchedAt < CACHE_TTL) return; // refresh at most every six hours
+    if (Date.now() - cached.fetchedAt < CACHE_TTL) return;
   }
   try {
-    const results = await Promise.all(AUTO_NEWS_TOPICS.map(async topic => {
-      const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(topic.q)}&hl=en-IN&gl=IN&ceid=IN:en`;
-      const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
-      const res = await fetch(apiUrl);
-      if (!res.ok) throw new Error('rss2json request failed');
-      const data = await res.json();
-      if (data.status !== 'ok' || !Array.isArray(data.items)) throw new Error('Unexpected feed response');
-      return data.items.slice(0, 8).map(it => {
-        const ts = it.pubDate ? new Date(it.pubDate).getTime() : Date.now();
-        let source = '';
-        try {
-          const host = new URL(it.link).hostname.replace(/^www\./, '');
-          source = ({'thehindu.com':'The Hindu','indianexpress.com':'The Indian Express','ndtv.com':'NDTV','hindustantimes.com':'Hindustan Times','bbc.com':'BBC News','bbc.co.uk':'BBC News','theguardian.com':'The Guardian','aljazeera.com':'Al Jazeera','reuters.com':'Reuters','deccanherald.com':'Deccan Herald','timesofindia.indiatimes.com':'The Times of India','livemint.com':'Mint','business-standard.com':'Business Standard','thehindubusinessline.com':'BusinessLine','espn.com':'ESPN','incometax.gov.in':'Income Tax Department','gst.gov.in':'GST Portal'})[host] || host;
-        } catch(e) {}
-        const clean = (it.description || '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim();
-        return {
-          title: (it.title || '').replace(/\s*-\s*[^-]+$/, '').trim(),
-          date: it.pubDate ? new Date(it.pubDate).toLocaleString('en-IN', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '',
-          cat: topic.cat,
-          desc: clean.slice(0, 220),
-          source,
-          link: it.link,
-          _ts: ts
-        };
+    const topics = [...AUTO_NEWS_TOPICS, ...REGIONAL_NEWS_TOPICS];
+    const items = [];
+    // Process six RSS searches at a time to reduce load on the public converter.
+    for (let i = 0; i < topics.length; i += 6) {
+      const batch = topics.slice(i, i + 6);
+      const responses = await Promise.allSettled(batch.map(async topic => {
+        const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(topic.q)}&hl=en-IN&gl=IN&ceid=IN:en`;
+        const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+        const res = await fetch(apiUrl);
+        if (!res.ok) throw new Error('rss2json request failed');
+        const data = await res.json();
+        if (data.status !== 'ok' || !Array.isArray(data.items)) throw new Error('Unexpected feed response');
+        return data.items.slice(0, topic.limit || 4).map(it => {
+          const ts = it.pubDate ? new Date(it.pubDate).getTime() : Date.now();
+          let source = '';
+          try {
+            const host = new URL(it.link).hostname.replace(/^www\\./, '');
+            source = ({'thehindu.com':'The Hindu','indianexpress.com':'The Indian Express','ndtv.com':'NDTV','hindustantimes.com':'Hindustan Times','bbc.com':'BBC News','bbc.co.uk':'BBC News','theguardian.com':'The Guardian','aljazeera.com':'Al Jazeera','reuters.com':'Reuters','deccanherald.com':'Deccan Herald','timesofindia.indiatimes.com':'The Times of India','livemint.com':'Mint','business-standard.com':'Business Standard','thehindubusinessline.com':'BusinessLine','espn.com':'ESPN','incometax.gov.in':'Income Tax Department','gst.gov.in':'GST Portal','newsonair.gov.in':'News on AIR','amarujala.com':'Amar Ujala'})[host] || host;
+          } catch(e) {}
+          const clean = (it.description || '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g,' ').replace(/\\s+/g,' ').trim();
+          return {
+            title: (it.title || '').replace(/\\s* -\\s*[^-]+$/, '').trim(),
+            date: it.pubDate ? new Date(it.pubDate).toLocaleString('en-IN', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '',
+            cat: topic.cat, desc: clean.slice(0, 220), source, link: it.link, _ts: ts
+          };
+        });
+      }));
+      responses.forEach(result => {
+        if (result.status === 'fulfilled') items.push(...result.value);
+        else console.warn('A regional news feed could not be loaded:', result.reason?.message || result.reason);
       });
-    }));
-    const items = results.flat().filter(n => n.title);
-    if (items.length) {
-      window._autoNews = items;
-      saveAutoNewsCache(items);
+    }
+    const unique = [...new Map(items.filter(n => n.title).map(n => [n.title.toLowerCase(), n])).values()]
+      .sort((a,b) => (b._ts || 0) - (a._ts || 0));
+    if (unique.length) {
+      window._autoNews = unique;
+      saveAutoNewsCache(unique);
       window.renderAllNews && window.renderAllNews();
     }
   } catch (err) {
     console.warn('Automatic news fetch failed, keeping cached/static news:', err.message);
-    // window._autoNews already holds the cache (if any); static `news` array covers the rest.
   }
 }
-
 function filterNews(btn,cat){
   document.querySelectorAll('#news-cats button').forEach(b=>b.className='btn btn-ghost btn-sm');
   btn.className='btn btn-primary btn-sm';
