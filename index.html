@@ -834,8 +834,8 @@ footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:60px 0 30px
     <div class="c">
       <div class="sh">
         <span class="badge badge-blue">Latest Updates</span>
-        <h2>Government & Tax <span class="g-text">News</span></h2>
-        <p>Daily news, notifications, and updates on Income Tax, GST, Companies Act, and more.</p>
+        <h2>India & World <span class="g-text">News</span></h2>
+        <p>National, international, Bengaluru & Karnataka headlines, alongside tax and business updates from established news organisations.</p>
       </div>
       <div class="news-grid" id="news-home"></div>
       <div class="dc-news-actions">
@@ -952,8 +952,8 @@ footer{background:var(--bg2);border-top:1px solid var(--bdr);padding:60px 0 30px
 <div class="page" id="page-news" style="padding:80px 20px">
   <div class="c">
     <div class="sh">
-      <h2>Tax & <span class="g-text">Compliance News</span></h2>
-      <p>Latest updates on Income Tax, GST, Companies Act, and Government notifications.</p>
+      <h2>News & <span class="g-text">Current Affairs</span></h2>
+      <p>National, international, Bengaluru & Karnataka, business, technology, sports and tax updates. Stories link to their original publishers.</p>
     </div>
     <div style="margin-bottom:2rem;display:flex;gap:.5rem;flex-wrap:wrap" id="news-cats"></div>
     <div class="news-grid" id="news-full"></div>
@@ -2279,17 +2279,18 @@ window.renderAllNews = function(){
   renderNewsCats();
 };
 
-// ═══ AUTOMATIC DAILY NEWS (Task 5) ═══
-// No API key required and nothing secret is exposed: this reads public Google
-// News RSS feeds (Income Tax / GST / MCA-compliance topics) through the free,
-// keyless rss2json converter so it can be fetched directly from the browser.
-// Results are cached in localStorage for 24h so the News section still shows
-// the last successful fetch if the person is offline or the source fails.
-const AUTO_NEWS_CACHE_KEY = 'digicafe_auto_news_v1';
+// ═══ AUTOMATIC DAILY NEWS ═══
+// Public Google News RSS search results are fetched through rss2json.
+// Queries target established publishers; original article links are retained.
+// Cache is refreshed every six hours and reused when feeds are temporarily down.
+const AUTO_NEWS_CACHE_KEY = 'digicafe_auto_news_v2';
 const AUTO_NEWS_TOPICS = [
-  { q: 'Income Tax India', cat: 'Income Tax' },
-  { q: 'GST India', cat: 'GST' },
-  { q: 'MCA compliance India OR Companies Act India', cat: 'Companies Act' }
+  { q: '(India OR Indian) national news site:thehindu.com OR site:indianexpress.com OR site:ndtv.com OR site:hindustantimes.com', cat: 'National' },
+  { q: '(world OR international) news site:bbc.com OR site:theguardian.com OR site:aljazeera.com OR site:reuters.com', cat: 'International' },
+  { q: '(Bengaluru OR Bangalore OR Karnataka) news site:thehindu.com OR site:indianexpress.com OR site:deccanherald.com OR site:timesofindia.indiatimes.com', cat: 'Bengaluru & Karnataka' },
+  { q: 'India business economy markets technology news site:livemint.com OR site:business-standard.com OR site:thehindubusinessline.com', cat: 'Business & Technology' },
+  { q: 'India sports news site:indianexpress.com OR site:espn.com OR site:bbc.com', cat: 'Sports' },
+  { q: 'Income Tax India OR GST India OR MCA compliance India site:thehindu.com OR site:business-standard.com OR site:livemint.com OR site:incometax.gov.in OR site:gst.gov.in', cat: 'Tax & Compliance' }
 ];
 
 function loadAutoNewsCache(){
@@ -2306,12 +2307,12 @@ function saveAutoNewsCache(items){
 
 async function fetchAutoNews(){
   const cached = loadAutoNewsCache();
-  const ONE_DAY = 24 * 60 * 60 * 1000;
+  const CACHE_TTL = 6 * 60 * 60 * 1000;
   // Serve cache immediately so the section is never empty while we refresh.
   if (cached && cached.items && cached.items.length) {
     window._autoNews = cached.items;
     window.renderAllNews && window.renderAllNews();
-    if (Date.now() - cached.fetchedAt < ONE_DAY) return; // still fresh, no refetch needed today
+    if (Date.now() - cached.fetchedAt < CACHE_TTL) return; // refresh at most every six hours
   }
   try {
     const results = await Promise.all(AUTO_NEWS_TOPICS.map(async topic => {
@@ -2321,15 +2322,19 @@ async function fetchAutoNews(){
       if (!res.ok) throw new Error('rss2json request failed');
       const data = await res.json();
       if (data.status !== 'ok' || !Array.isArray(data.items)) throw new Error('Unexpected feed response');
-      return data.items.slice(0, 5).map(it => {
+      return data.items.slice(0, 8).map(it => {
         const ts = it.pubDate ? new Date(it.pubDate).getTime() : Date.now();
         let source = '';
-        try { source = new URL(it.link).hostname.replace('www.', ''); } catch(e) {}
+        try {
+          const host = new URL(it.link).hostname.replace(/^www\./, '');
+          source = ({'thehindu.com':'The Hindu','indianexpress.com':'The Indian Express','ndtv.com':'NDTV','hindustantimes.com':'Hindustan Times','bbc.com':'BBC News','bbc.co.uk':'BBC News','theguardian.com':'The Guardian','aljazeera.com':'Al Jazeera','reuters.com':'Reuters','deccanherald.com':'Deccan Herald','timesofindia.indiatimes.com':'The Times of India','livemint.com':'Mint','business-standard.com':'Business Standard','thehindubusinessline.com':'BusinessLine','espn.com':'ESPN','incometax.gov.in':'Income Tax Department','gst.gov.in':'GST Portal'})[host] || host;
+        } catch(e) {}
+        const clean = (it.description || '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim();
         return {
-          title: (it.title || '').replace(/\s*-\s*[^-]+$/, ''), // Google News appends "- Source"
-          date: it.pubDate ? new Date(it.pubDate).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'}) : '',
+          title: (it.title || '').replace(/\s*-\s*[^-]+$/, '').trim(),
+          date: it.pubDate ? new Date(it.pubDate).toLocaleString('en-IN', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '',
           cat: topic.cat,
-          desc: (it.description || '').replace(/<[^>]*>/g, '').slice(0, 180),
+          desc: clean.slice(0, 220),
           source,
           link: it.link,
           _ts: ts
