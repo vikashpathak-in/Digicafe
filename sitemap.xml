@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://vikashp23.github.io/Digicafe/</loc>
-    <lastmod>2026-07-26</lastmod>
+    <loc>https://vikashpathak-in.github.io/Digicafe/</loc>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://vikashpathak-in.github.io/Digicafe/blog-bouquet-effect-ai-creativity.html</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
 </urlset>
