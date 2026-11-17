@@ -61,6 +61,15 @@
     const palette = PALETTES[festival ? festival.palette : period] || PALETTES.day;
     const root = document.documentElement;
     root.dataset.vikashTheme = festival ? festival.palette : period;
+    if (location.pathname.toLowerCase().includes('/vikash-builds-ai')) {
+      let aiStyle = document.getElementById('vx-ai-theme-overrides');
+      if (!aiStyle) {
+        aiStyle = document.createElement('style');
+        aiStyle.id = 'vx-ai-theme-overrides';
+        aiStyle.textContent = 'body{background:var(--vx-bg)!important;color:var(--vx-text)!important}.bg-glow{background:radial-gradient(circle,var(--vx-accent2)55 0%,transparent 70%)!important;opacity:.25}.profile-img{border-color:var(--vx-accent2)!important;box-shadow:0 0 30px var(--vx-accent2)!important}.hero h1{background:linear-gradient(90deg,var(--vx-accent2),var(--vx-accent))!important;-webkit-background-clip:text!important;background-clip:text!important}.hero p,.card-content p{color:var(--vx-muted)!important}.btn,.filter-buttons button{background:var(--vx-surface)!important;border-color:var(--vx-accent2)!important;color:var(--vx-text)!important}.btn:hover,.filter-buttons button:hover{background:var(--vx-accent)!important;color:#fff!important}.card{background:var(--vx-surface)!important;border-color:var(--vx-border)!important}.card:hover{box-shadow:0 0 30px var(--vx-accent2)!important}';
+        document.head.appendChild(aiStyle);
+      }
+    }
     root.style.colorScheme = period === 'night' && !festival ? 'dark' : 'light';
     const set = (k,v) => root.style.setProperty(k,v);
     set('--vx-bg',palette.bg); set('--vx-surface',palette.surface); set('--vx-text',palette.text);
