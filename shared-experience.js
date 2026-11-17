@@ -68,8 +68,8 @@
     set('--vx-border',palette.border); set('--vx-deep',palette.deep); set('--vx-soft',palette.soft);
 
     /* Shared design tokens used by the individual sites. */
-    ['--bg','--bg2','--bg3','--surf','--surf2','--white','--surface','--card-bg'].forEach(k=>set(k,palette.surface));
-    ['--txt','--ink','--cream','--brown','--navy'].forEach(k=>set(k,palette.text));
+    set('--bg',palette.bg); set('--bg2',palette.surface); set('--bg3',palette.soft); set('--bg4',palette.soft); set('--surf',palette.surface); set('--surf2',palette.soft); ['--white','--surface','--card-bg'].forEach(k=>set(k,palette.surface));
+    ['--txt','--ink','--brown'].forEach(k=>set(k,palette.text)); set('--cream',palette.bg); set('--navy',palette.deep);
     ['--txt2','--txt3','--muted','--slate'].forEach(k=>set(k,palette.muted));
     ['--blue','--blue2','--accent','--saffron','--orange'].forEach(k=>set(k,palette.accent));
     ['--blue3','--teal','--accent2','--green','--jade'].forEach(k=>set(k,palette.accent2));
