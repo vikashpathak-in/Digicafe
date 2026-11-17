@@ -136,6 +136,7 @@
     const now = indiaNow();
     const festival = FESTIVALS[now.date] || null;
     applyTheme(now, festival);
+    window.setInterval(() => { const current = indiaNow(); applyTheme(current, FESTIVALS[current.date] || null); }, 10 * 60 * 1000);
 
     const hasExistingGreeting = !!document.querySelector(
       '#dc-morning-popup, #tasteHubPromo, #greeting-backdrop, #dt-popup-backdrop'
