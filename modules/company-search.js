@@ -43,7 +43,7 @@ const customCompanyDB = [
     industry: 'Tax & Compliance Services',
     email: 'digicafe.admin@gmail.com',
     phone: '+91 85399 79271',
-    website: 'https://vikashp23.github.io/digicafe/',
+    website: 'https://vikashpathak-in.github.io/Digicafe/',
     employees: '1-10',
     turnover: 'Not Disclosed',
     source: 'Custom Database'
@@ -51,14 +51,14 @@ const customCompanyDB = [
 ];
 
 // ═══ SEARCH FUNCTION ═══
-async function searchCompany(companyName) {
+async function searchCompany(companyName, triggerButton) {
   if (!companyName || companyName.trim().length < 2) {
     showToast('⚠ Enter at least 2 characters');
     return;
   }
 
   const searchTerm = companyName.toLowerCase().trim();
-  const btn = event?.target;
+  const btn = triggerButton || null;
   
   if (btn) {
     btn.disabled = true;
@@ -102,6 +102,12 @@ async function searchCompany(companyName) {
     } else {
       showToast(`✓ Found ${allResults.length} company(ies)`);
       displaySearchResults(allResults);
+    }
+    if (window._registryDatasetUnavailable) {
+      const note = document.createElement('p');
+      note.style.cssText = 'margin:1rem 0;color:var(--txt3);font-size:.85rem;text-align:center';
+      note.textContent = 'Bulk MCA registry data is not currently deployed on this website. Results shown are from DigiCafe’s own directory and admin-added records only.';
+      document.getElementById('company-search-results')?.appendChild(note);
     }
 
   } catch (err) {
@@ -199,6 +205,7 @@ function loadRegistryDataset() {
     .catch(err => {
       console.warn('Registry dataset unavailable, showing client directory only:', err.message);
       _registryDataset = [];
+      window._registryDatasetUnavailable = true;
       return [];
     });
 
