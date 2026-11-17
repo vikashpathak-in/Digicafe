@@ -121,15 +121,17 @@
     if (!title) return;
     const old = title.dataset.vxOriginal || title.textContent.trim();
     if (!title.dataset.vxOriginal) title.dataset.vxOriginal = old;
-    title.textContent = festival ? 'Happy ' + festival.name + '!' : greeting(now) + '!';
+    const nextTitle = festival ? 'Happy ' + festival.name + '!' : greeting(now) + '!';
+    if (title.textContent !== nextTitle) title.textContent = nextTitle;
     const day = 'Happy ' + now.weekday + ' · ' + now.date.split('-').reverse().join('/');
     const line = document.querySelector('#tasteHubGreetingLine, #greeting-message, #dc-greeting-message, #dt-popup-sub');
     if (line) {
       if (!line.dataset.vxOriginal) line.dataset.vxOriginal = line.textContent;
-      line.textContent = day + ' — ' + line.dataset.vxOriginal;
+      const nextLine = day + ' — ' + line.dataset.vxOriginal;
+      if (line.textContent !== nextLine) line.textContent = nextLine;
     }
     const icon = document.querySelector('#tasteHubGreetingIcon, #dc-greeting-icon, .dt-popup-icon');
-    if (icon && festival) icon.textContent = festival.icon;
+    if (icon && festival && icon.textContent !== festival.icon) icon.textContent = festival.icon;
   }
 
   function init() {
