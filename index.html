@@ -1930,6 +1930,35 @@ Optional style enhancement: subtle vintage risograph print texture, gentle paper
     <button class="btn btn-primary btn-full" type="button" onclick="closeDigiCafeWelcome('diwali')">Explore DigiCafe</button>
   </div>
 </div>
+<div id="dc-ai-tools-popup" class="dc-welcome-overlay" role="dialog" aria-modal="true" aria-labelledby="dc-ai-tools-title">
+  <div class="dc-welcome-card" style="max-width:620px;text-align:left">
+    <button class="dc-welcome-close" type="button" aria-label="Close" onclick="closeDigiCafeAiPopup()">&times;</button>
+    <div style="text-align:center"><div style="font-size:2.5rem">🤖</div><span class="badge badge-teal">New on DigiCafe</span>
+    <h2 id="dc-ai-tools-title">Introducing DigiCafe AI Tools</h2>
+    <p>Simple digital tools to support everyday finance, tax and business work.</p></div>
+    <div style="border:1px solid var(--bdr);background:var(--surf);border-radius:12px;padding:1rem 1.1rem;margin:.8rem 0 1rem">
+      <strong style="color:var(--txt)">Available now</strong>
+      <ul style="padding-left:1.2rem;color:var(--txt2);font-size:.88rem;line-height:1.8;margin:.5rem 0">
+        <li>GST Calculator – inclusive and exclusive calculations</li>
+        <li>TDS Estimator – calculation using a rate you provide</li>
+        <li>CSV Reconciliation – match records across two files</li>
+        <li>Document Draft Assistant – editable business templates</li>
+      </ul>
+      <strong style="color:var(--txt)">Coming next</strong>
+      <ul style="padding-left:1.2rem;color:var(--txt2);font-size:.88rem;line-height:1.8;margin:.5rem 0 0">
+        <li>AI Accounting Assistant – ledger, journal-entry and accounting guidance</li>
+        <li>AI GST Assistant – GST concepts, return preparation checklists and mismatch guidance</li>
+        <li>Financial Statement Analyzer – review of uploaded Excel/PDF reports</li>
+        <li>MCA Compliance Assistant – company/LLP filing guidance and compliance checklists</li>
+      </ul>
+    </div>
+    <p style="font-size:.78rem;color:var(--txt3)">Upcoming features are planned and are not available yet. Current tools are early-stage utilities, not statutory or professional advice. Do not upload confidential client data.</p>
+    <div style="display:flex;gap:.65rem;justify-content:center;flex-wrap:wrap;margin-top:1rem">
+      <a class="btn btn-primary" href="ai-tools.html">Explore AI Tools</a>
+      <button class="btn btn-ghost" type="button" onclick="closeDigiCafeAiPopup()">Maybe later</button>
+    </div>
+  </div>
+</div>
 <div id="dc-morning-popup" class="dc-welcome-overlay" role="dialog" aria-modal="true" aria-labelledby="dc-morning-title">
   <div class="dc-welcome-card" style="max-width:560px;text-align:left">
     <button class="dc-welcome-close" type="button" aria-label="Close" onclick="closeDigiCafeWelcome('morning')">&times;</button>
@@ -2985,6 +3014,18 @@ function sendRequestOnWhatsApp(){
   const diwaliKey = 'digicafe_diwali_2026_seen';
   const welcomeKey = 'digicafe_welcome_seen_v2_'+dateKey;
   function open(id){ document.getElementById(id)?.classList.add('open'); }
+  const aiToolsKey = 'digicafe_ai_tools_intro_v1';
+  window.closeDigiCafeAiPopup = function(){
+    document.getElementById('dc-ai-tools-popup')?.classList.remove('open');
+    try { localStorage.setItem(aiToolsKey,'1'); } catch(e) {}
+    setTimeout(showWelcome,350);
+  };
+  function showAiToolsPopup(){
+    let seen=false;
+    try { seen=localStorage.getItem(aiToolsKey)==='1'; } catch(e) {}
+    if(seen){ showWelcome(); return; }
+    open('dc-ai-tools-popup');
+  }
   function setTimeGreeting(){
     const hour = new Date().getHours();
     let greeting = 'Good Evening', icon = '🌆', message = 'Wishing you a productive evening. Explore the latest DigiCafe updates and services.';
@@ -3000,6 +3041,7 @@ function sendRequestOnWhatsApp(){
     if(copy) copy.textContent = message;
   }
   window.closeDigiCafeWelcome = function(kind){
+    if(kind==='ai'){ window.closeDigiCafeAiPopup(); return; }
     const id = kind === 'diwali' ? 'dc-diwali-popup' : 'dc-morning-popup';
     document.getElementById(id)?.classList.remove('open');
     try { localStorage.setItem(kind === 'diwali' ? diwaliKey : welcomeKey,'1'); } catch(e) {}
@@ -3015,9 +3057,9 @@ function sendRequestOnWhatsApp(){
     let diwaliSeen = false;
     try { diwaliSeen = localStorage.getItem(diwaliKey) === '1'; } catch(e) {}
     if(isDiwali && !diwaliSeen) setTimeout(()=>open('dc-diwali-popup'),1200);
-    else setTimeout(showWelcome,1800);
-    ['dc-diwali-popup','dc-morning-popup'].forEach(id=>{
-      document.getElementById(id)?.addEventListener('click',e=>{ if(e.target.id===id) window.closeDigiCafeWelcome(id==='dc-diwali-popup'?'diwali':'morning'); });
+    else setTimeout(showAiToolsPopup,1800);
+    ['dc-diwali-popup','dc-morning-popup','dc-ai-tools-popup'].forEach(id=>{
+      document.getElementById(id)?.addEventListener('click',e=>{ if(e.target.id===id) window.closeDigiCafeWelcome(id==='dc-diwali-popup'?'diwali':(id==='dc-ai-tools-popup'?'ai':'morning')); });
     });
   });
 })();
