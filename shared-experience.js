@@ -178,7 +178,8 @@
   function init() {
     const now = indiaNow();
     const festival = FESTIVALS[now.date] || null;
-    applyTheme(now, festival);\n    addDigiCafeSocialLinks();
+    applyTheme(now, festival);
+    addDigiCafeSocialLinks();
     window.setInterval(() => { const current = indiaNow(); applyTheme(current, FESTIVALS[current.date] || null); }, 10 * 60 * 1000);
 
     const hasExistingGreeting = !!document.querySelector(
