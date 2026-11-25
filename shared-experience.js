@@ -149,6 +149,7 @@
     if (document.getElementById('digicafe-social-rail')) return;
 
     const links = [
+      { label: 'Blog', href: 'https://vikashpathak-in.github.io/Digicafe/blogs.html', icon: 'fas fa-book-open' },
       { label: 'LinkedIn', href: 'https://www.linkedin.com/company/digicafe-finance/', icon: 'fab fa-linkedin-in' },
       { label: 'Facebook', href: 'https://www.facebook.com/share/1EDfoE14Gn/', icon: 'fab fa-facebook-f' },
       { label: 'Instagram', href: 'https://www.instagram.com/digic.afe/', icon: 'fab fa-instagram' },
