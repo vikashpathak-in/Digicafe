@@ -143,10 +143,42 @@
     if (icon && festival && icon.textContent !== festival.icon) icon.textContent = festival.icon;
   }
 
+
+  function addDigiCafeSocialLinks() {
+    if (!location.pathname.toLowerCase().includes('/digicafe')) return;
+    if (document.getElementById('digicafe-social-rail')) return;
+
+    const links = [
+      { label: 'LinkedIn', href: 'https://www.linkedin.com/company/digicafe-finance/', icon: 'fab fa-linkedin-in' },
+      { label: 'Facebook', href: 'https://www.facebook.com/share/1EDfoE14Gn/', icon: 'fab fa-facebook-f' },
+      { label: 'Instagram', href: 'https://www.instagram.com/digic.afe/', icon: 'fab fa-instagram' },
+      { label: 'Threads', href: 'https://www.threads.com/@digic.afe', icon: 'fab fa-threads' }
+    ];
+
+    const style = document.createElement('style');
+    style.id = 'digicafe-social-rail-style';
+    style.textContent = `
+      #digicafe-social-rail{position:fixed;right:16px;top:42%;transform:translateY(-50%);z-index:950;display:flex;flex-direction:column;gap:10px}
+      #digicafe-social-rail a{width:44px;height:44px;display:grid;place-items:center;border-radius:50%;background:#fff;color:#173b63;border:1px solid #d7e1ec;box-shadow:0 5px 18px rgba(16,47,85,.16);font-size:19px;text-decoration:none;transition:transform .2s ease,background .2s ease,color .2s ease,box-shadow .2s ease}
+      #digicafe-social-rail a:hover{transform:translateX(-4px);background:#173b63;color:#fff;box-shadow:0 8px 22px rgba(16,47,85,.24)}
+      #digicafe-social-rail a:focus-visible{outline:3px solid #0f8b72;outline-offset:3px}
+      @media(max-width:640px){#digicafe-social-rail{right:9px;top:auto;bottom:84px;transform:none;gap:8px}#digicafe-social-rail a{width:39px;height:39px;font-size:17px}}
+      @media(prefers-reduced-motion:reduce){#digicafe-social-rail a{transition:none}}
+    `;
+    const rail = document.createElement('nav');
+    rail.id = 'digicafe-social-rail';
+    rail.setAttribute('aria-label', 'DigiCafe social media links');
+    rail.innerHTML = links.map(link =>
+      '<a href="' + link.href + '" target="_blank" rel="noopener noreferrer" aria-label="DigiCafe on ' + link.label + '" title="' + link.label + '"><i class="' + link.icon + '" aria-hidden="true"></i></a>'
+    ).join('');
+    document.head.appendChild(style);
+    document.body.appendChild(rail);
+  }
+
   function init() {
     const now = indiaNow();
     const festival = FESTIVALS[now.date] || null;
-    applyTheme(now, festival);
+    applyTheme(now, festival);\n    addDigiCafeSocialLinks();
     window.setInterval(() => { const current = indiaNow(); applyTheme(current, FESTIVALS[current.date] || null); }, 10 * 60 * 1000);
 
     const hasExistingGreeting = !!document.querySelector(
