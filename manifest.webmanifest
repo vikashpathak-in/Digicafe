@@ -1,0 +1,28 @@
+{
+  "id": "/Digicafe/",
+  "name": "DigiCafe",
+  "short_name": "DigiCafe",
+  "description": "Finance, taxation, accounting and business compliance support.",
+  "lang": "en-IN",
+  "start_url": "/Digicafe/?source=pwa",
+  "scope": "/Digicafe/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#e8edf3",
+  "theme_color": "#102f55",
+  "categories": ["business", "finance", "productivity"],
+  "icons": [
+    {
+      "src": "/Digicafe/icons/digicafe-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/Digicafe/icons/digicafe-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
